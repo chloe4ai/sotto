@@ -22,8 +22,25 @@ class Transcriber:
         self._model = None
         self._model_lock = threading.Lock()
 
+    @property
+    def ready(self) -> bool:
+        return self._model is not None
+
     def preload(self) -> None:
-        threading.Thread(target=self._ensure_model, daemon=True).start()
+        threading.Thread(target=self._preload_quietly, daemon=True).start()
+
+    def _preload_quietly(self) -> None:
+        try:
+            self._ensure_model()
+        except Exception:
+            # No network on first run, most likely. transcribe() will retry
+            # and surface the error where the user can see it.
+            pass
+
+    def reset(self) -> None:
+        """Drop the loaded model (e.g. after the user picks a new size)."""
+        with self._model_lock:
+            self._model = None
 
     def _ensure_model(self):
         with self._model_lock:

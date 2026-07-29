@@ -5,6 +5,8 @@ center of the screen. It never steals focus from the app you're dictating into.
 All AppKit calls are marshalled onto the main thread.
 """
 
+import threading
+
 import objc
 from AppKit import (
     NSColor,
@@ -36,7 +38,10 @@ class _HudBridge(NSObject):
     def _ensurePanel(self):
         if self.panel is not None:
             return
-        screen = NSScreen.mainScreen().frame()
+        main_screen = NSScreen.mainScreen() or (NSScreen.screens() or [None])[0]
+        if main_screen is None:  # headless — nothing to draw on
+            return
+        screen = main_screen.frame()
         x = (screen.size.width - _WIDTH) / 2
         rect = NSMakeRect(x, _MARGIN_BOTTOM, _WIDTH, _HEIGHT)
         style = NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel
@@ -74,6 +79,8 @@ class _HudBridge(NSObject):
 
     def showText_(self, text):
         self._ensurePanel()
+        if self.panel is None:
+            return
         self.label.setStringValue_(text)
         self.panel.orderFrontRegardless()
 
@@ -85,8 +92,12 @@ class _HudBridge(NSObject):
 class Hud:
     def __init__(self) -> None:
         self._bridge = _HudBridge.alloc().init()
+        self._hide_timer: threading.Timer | None = None
 
     def _show(self, text: str) -> None:
+        if self._hide_timer is not None:
+            self._hide_timer.cancel()
+            self._hide_timer = None
         self._bridge.performSelectorOnMainThread_withObject_waitUntilDone_(
             b"showText:", text, False
         )
@@ -97,7 +108,21 @@ class Hud:
     def processing(self) -> None:
         self._show("✨  Polishing…")
 
+    def loading_model(self) -> None:
+        self._show("⏳  Loading model…")
+
+    def error(self, text: str, seconds: float = 4.0) -> None:
+        """Show an error in the capsule, then auto-hide. This is the fallback
+        channel when macOS notifications are unavailable or muted."""
+        self._show(f"⚠️  {text}")
+        self._hide_timer = threading.Timer(seconds, self.hide)
+        self._hide_timer.daemon = True
+        self._hide_timer.start()
+
     def hide(self) -> None:
+        if self._hide_timer is not None:
+            self._hide_timer.cancel()
+            self._hide_timer = None
         self._bridge.performSelectorOnMainThread_withObject_waitUntilDone_(
             b"hide:", None, False
         )
