@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync dependencies
+        run: uv sync --extra dev
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+      - name: Run tests
+        run: uv run --extra dev pytest -q
+      - name: CLI smoke test
+        run: |
+          uv run sotto --version
+          uv run sotto --help
