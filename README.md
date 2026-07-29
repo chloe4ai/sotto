@@ -42,7 +42,7 @@ hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ poli
 Requires macOS and [uv](https://docs.astral.sh/uv/) (`brew install uv`).
 
 ```bash
-git clone https://github.com/chloe-us/sotto.git
+git clone https://github.com/chloe4ai/sotto.git
 cd sotto
 uv sync                 # add --extra ai for Claude polishing
 uv run sotto
