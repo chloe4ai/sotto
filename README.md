@@ -1,5 +1,7 @@
 # 🎙 Sotto
 
+[![CI](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml/badge.svg)](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml)
+
 > *sotto voce* — in a soft voice.
 > **Speak softly, never type.** 轻声一说，文字即成。
 
@@ -39,7 +41,9 @@ hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ poli
 
 ## Install
 
-Requires macOS and [uv](https://docs.astral.sh/uv/) (`brew install uv`).
+Requires macOS 11+ (Apple Silicon or Intel) and
+[uv](https://docs.astral.sh/uv/) (`brew install uv`). Python is fetched
+automatically if needed — any 3.10–3.14 works.
 
 ```bash
 git clone https://github.com/chloe4ai/sotto.git
@@ -48,14 +52,31 @@ uv sync                 # add --extra ai for Claude polishing
 uv run sotto
 ```
 
-First run downloads the Whisper `base` model (~150 MB) and macOS will prompt
-for two permissions:
+Or, without cloning:
+
+```bash
+uv tool install git+https://github.com/chloe4ai/sotto
+sotto
+```
+
+First run downloads the Whisper `base` model (~150 MB, one-time; everything
+runs offline after that) and macOS will prompt for two permissions:
 
 - **Microphone** — to hear you.
-- **Accessibility / Input Monitoring** — to detect the hotkey and paste text.
-  (System Settings → Privacy & Security. Grant it to your terminal app.)
+- **Accessibility** — to detect the hotkey and paste text.
+
+Grant both to **the app you launch sotto from** (Terminal, iTerm, etc.) in
+System Settings → Privacy & Security, then **quit and rerun sotto** — macOS
+only applies the permission to newly started processes. Sotto pops a reminder
+at launch if the permission is missing.
 
 That's the whole permission surface. No screen recording, no camera, no cloud.
+
+Check your setup anytime:
+
+```bash
+uv run sotto --doctor
+```
 
 ## Use
 
@@ -89,12 +110,43 @@ cloudy tan -> Chloe Tan
 `~/.sotto/config.json` — hotkey, model size (`tiny`…`large-v3`), language
 (`auto` handles mixed 中英), polish mode.
 
+## Troubleshooting
+
+**Nothing happens when I hold the key.** This is almost always the
+Accessibility permission. Run `uv run sotto --doctor` — if it shows ✗, enable
+your terminal app in System Settings → Privacy & Security → **Accessibility**
+(and, on some macOS versions, **Input Monitoring** too), then quit and rerun
+sotto. If you see `This process is not trusted!` in the terminal, it's the
+same issue. Note: after your terminal app updates, macOS may silently revoke
+the permission — toggle it off and on again.
+
+**"Could not access microphone."** Enable your terminal app under System
+Settings → Privacy & Security → Microphone. If the app never appears in the
+list, run sotto once and speak — macOS adds it after the first attempt.
+
+**First dictation is slow or fails offline.** The Whisper model downloads
+from Hugging Face on first use (~150 MB for `base`). Stay online for that one
+dictation; everything is local afterwards. The HUD shows "⏳ Loading model…"
+while this happens.
+
+**Text lands in the wrong app.** Sotto pastes into whatever app has focus
+when you release the key. Click into the target text field before speaking.
+
+**Pasting replaced my clipboard.** Sotto restores your previous clipboard
+about half a second after pasting (text only — images are not restored).
+
 ## Debugging
 
 Transcribe a file without the menu bar app:
 
 ```bash
 uv run sotto --file some_audio.wav
+```
+
+Check permissions and setup:
+
+```bash
+uv run sotto --doctor
 ```
 
 Run tests:
