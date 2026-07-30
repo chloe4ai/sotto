@@ -27,27 +27,23 @@ values: **local-first, transparent, free**.
 hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ polish ──▶ ⌘V insert
 ```
 
-### In four steps · 四步上手
+### In four steps
 
-> Illustrated walkthrough — run it yourself to see the real thing. 示意图基于真实界面绘制。
+> Illustrated walkthrough, drawn to match the real UI — run it yourself to see the real thing.
 
-**1 — Launch it.** Sotto sits in your menu bar: pick a model, a polish mode, edit your dictionary.
-启动后常驻菜单栏，模型、润色模式随点随换。
+**1 — Launch it.** Sotto sits in your menu bar: pick a model, a polish mode, toggle translate, edit your dictionary.
 
 <img src="docs/step1-menubar.svg" width="760" alt="Sotto in the macOS menu bar with its dropdown menu open">
 
 **2 — Hold right ⌥ and just talk.** A floating capsule shows Sotto is listening — in any app, any text field.
-在任何输入框按住右 Option 开口说，悬浮胶囊提示正在聆听。
 
 <img src="docs/step2-hold-speak.svg" width="760" alt="Floating Listening capsule while dictating into a mail compose window">
 
 **3 — Release. Sotto polishes.** Fillers dropped, self-corrections applied, punctuation fixed — on device, or via Claude if you opt in.
-松开后自动润色：语气词删除、中途改口取后者、标点修正。
 
 <img src="docs/step3-polish.svg" width="760" alt="Raw speech with filler words transformed into clean polished text">
 
 **4 — Text appears where your cursor is.** Pasted into the frontmost app; your old clipboard is restored.
-成品文字直接出现在光标处，原剪贴板自动恢复。
 
 <img src="docs/step4-insert.svg" width="760" alt="Polished text inserted into a Slack message box, clipboard restored toast">
 
