@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="420" viewBox="0 0 760 420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+  <defs>
+    <clipPath id="canvas3"><rect width="760" height="420" rx="16"/></clipPath>
+  </defs>
+  <g clip-path="url(#canvas3)">
+    <rect width="760" height="420" fill="#17171c"/>
+    <circle cx="120" cy="60" r="180" fill="#1f1b2e" opacity="0.6"/>
+    <circle cx="660" cy="380" r="200" fill="#16222b" opacity="0.6"/>
+
+    <!-- capsule -->
+    <g>
+      <rect x="280" y="30" width="200" height="40" rx="20" fill="#101014" stroke="#3d3d47"/>
+      <text x="380" y="55" font-size="14" fill="#ffffff" text-anchor="middle">✨ Polishing…</text>
+    </g>
+
+    <!-- "you said" card -->
+    <g>
+      <rect x="60" y="100" width="640" height="108" rx="14" fill="#26262e" stroke="#3d3d47"/>
+      <text x="84" y="130" font-size="12" font-weight="700" fill="#8a8a95" letter-spacing="1">🗣 YOU SAID · 你说的</text>
+      <text x="84" y="162" font-size="15" fill="#d5d5dc">
+        <tspan fill="#5c5c66" text-decoration="line-through">嗯，那个，</tspan>帮我约一下 Alex，<tspan fill="#5c5c66" text-decoration="line-through">uh,</tspan> Thursday 下午的 sync，
+      </text>
+      <text x="84" y="188" font-size="15" fill="#d5d5dc">
+        <tspan fill="#5c5c66" text-decoration="line-through">三点吧，不对，</tspan>四点，<tspan fill="#5c5c66" text-decoration="line-through">就是</tspan>再加个 agenda：Q3 roadmap
+      </text>
+    </g>
+
+    <!-- arrow -->
+    <g>
+      <line x1="380" y1="222" x2="380" y2="252" stroke="#a99bff" stroke-width="2.5"/>
+      <path d="M 372 246 L 380 256 L 388 246" fill="none" stroke="#a99bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- "sotto types" card -->
+    <g>
+      <rect x="60" y="268" width="640" height="118" rx="14" fill="#221f33" stroke="#4a3d8f"/>
+      <text x="84" y="298" font-size="12" font-weight="700" fill="#a99bff" letter-spacing="1">✨ SOTTO TYPES · Sotto 帮你写好</text>
+      <text x="84" y="330" font-size="15" fill="#f0eefc">帮我约一下 Alex，Thursday 下午四点的 sync，</text>
+      <text x="84" y="356" font-size="15" fill="#f0eefc">agenda：Q3 roadmap。</text>
+      <text x="676" y="372" font-size="11" fill="#8a8a95" text-anchor="end">语气词已删 · 改口取后者 · 标点已修</text>
+    </g>
+  </g>
+</svg>

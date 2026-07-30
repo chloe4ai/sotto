@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="420" viewBox="0 0 760 420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+  <defs>
+    <clipPath id="canvas"><rect width="760" height="420" rx="16"/></clipPath>
+  </defs>
+  <g clip-path="url(#canvas)">
+    <!-- desktop background -->
+    <rect width="760" height="420" fill="#17171c"/>
+    <circle cx="120" cy="360" r="220" fill="#1f1b2e" opacity="0.6"/>
+    <circle cx="680" cy="80" r="180" fill="#16222b" opacity="0.6"/>
+
+    <!-- macOS menu bar -->
+    <rect x="0" y="0" width="760" height="34" fill="#232329"/>
+    <text x="22" y="22" font-size="14" fill="#e8e8ec"></text>
+    <text x="46" y="22" font-size="13" font-weight="600" fill="#e8e8ec">Finder</text>
+    <text x="104" y="22" font-size="13" fill="#b9b9c2">File</text>
+    <text x="140" y="22" font-size="13" fill="#b9b9c2">Edit</text>
+    <text x="178" y="22" font-size="13" fill="#b9b9c2">View</text>
+
+    <!-- status icons -->
+    <text x="586" y="22" font-size="13" fill="#b9b9c2">🔋</text>
+    <text x="614" y="22" font-size="13" fill="#b9b9c2">📶</text>
+    <!-- Sotto icon, highlighted -->
+    <rect x="638" y="4" width="30" height="26" rx="6" fill="#3d3d47"/>
+    <text x="644" y="23" font-size="14">🎙</text>
+    <text x="682" y="22" font-size="13" fill="#b9b9c2">Wed 9:41</text>
+
+    <!-- dropdown menu -->
+    <g>
+      <rect x="470" y="40" width="230" height="252" rx="10" fill="#2b2b33" stroke="#3d3d47" stroke-width="1"/>
+      <text x="488" y="70" font-size="13" fill="#8a8a95">Hold ⌥ (right) to speak</text>
+      <line x1="482" y1="84" x2="688" y2="84" stroke="#3d3d47" stroke-width="1"/>
+
+      <text x="488" y="110" font-size="13" fill="#e8e8ec">Model</text>
+      <text x="676" y="110" font-size="12" fill="#8a8a95" text-anchor="end">base ✓  ▸</text>
+
+      <text x="488" y="140" font-size="13" fill="#e8e8ec">Polish</text>
+      <text x="676" y="140" font-size="12" fill="#8a8a95" text-anchor="end">auto ✓  ▸</text>
+
+      <text x="488" y="172" font-size="13" fill="#e8e8ec">Translate to English</text>
+
+      <rect x="478" y="184" width="214" height="26" rx="6" fill="#4a3d8f"/>
+      <text x="488" y="202" font-size="13" fill="#ffffff">Edit Dictionary…</text>
+
+      <line x1="482" y1="222" x2="688" y2="222" stroke="#3d3d47" stroke-width="1"/>
+      <text x="488" y="246" font-size="13" fill="#e8e8ec">Quit Sotto</text>
+      <text x="676" y="246" font-size="12" fill="#8a8a95" text-anchor="end">⌘Q</text>
+    </g>
+
+    <!-- caption card -->
+    <g>
+      <rect x="40" y="120" width="360" height="180" rx="14" fill="#26262e" stroke="#3d3d47"/>
+      <text x="64" y="160" font-size="18" font-weight="700" fill="#e8e8ec">1 · Sotto lives in your menu bar</text>
+      <text x="64" y="192" font-size="13.5" fill="#b9b9c2">Run <tspan font-family="ui-monospace, Menlo, monospace" fill="#a99bff">uv run sotto</tspan> — the 🎙 icon appears.</text>
+      <text x="64" y="216" font-size="13.5" fill="#b9b9c2">Pick a Whisper model, a polish mode, and</text>
+      <text x="64" y="236" font-size="13.5" fill="#b9b9c2">edit your personal dictionary. 常驻菜单栏，</text>
+      <text x="64" y="256" font-size="13.5" fill="#b9b9c2">模型与润色模式随点随换。</text>
+    </g>
+  </g>
+</svg>

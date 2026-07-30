@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="420" viewBox="0 0 760 420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+  <defs>
+    <clipPath id="canvas4"><rect width="760" height="420" rx="16"/></clipPath>
+  </defs>
+  <g clip-path="url(#canvas4)">
+    <rect width="760" height="420" fill="#17171c"/>
+    <circle cx="660" cy="70" r="180" fill="#1f1b2e" opacity="0.6"/>
+    <circle cx="100" cy="380" r="200" fill="#16222b" opacity="0.6"/>
+
+    <!-- chat app window -->
+    <g>
+      <rect x="70" y="40" width="620" height="300" rx="12" fill="#26262e" stroke="#3d3d47"/>
+      <circle cx="94" cy="62" r="6" fill="#ff5f57"/>
+      <circle cx="114" cy="62" r="6" fill="#febc2e"/>
+      <circle cx="134" cy="62" r="6" fill="#28c840"/>
+      <text x="380" y="67" font-size="13" fill="#8a8a95" text-anchor="middle"># team-sync · Slack</text>
+      <line x1="70" y1="82" x2="690" y2="82" stroke="#3d3d47"/>
+
+      <!-- incoming message -->
+      <circle cx="108" cy="112" r="14" fill="#3a5a8f"/>
+      <text x="108" y="117" font-size="12" fill="#fff" text-anchor="middle">A</text>
+      <text x="132" y="106" font-size="13" font-weight="700" fill="#e8e8ec">Alex Liu <tspan font-weight="400" font-size="11" fill="#8a8a95">10:02</tspan></text>
+      <text x="132" y="126" font-size="13" fill="#b9b9c2">When should we do the Q3 review?</text>
+
+      <!-- message input with inserted text -->
+      <rect x="90" y="252" width="580" height="66" rx="10" fill="#1c1c22" stroke="#4a3d8f" stroke-width="1.5"/>
+      <text x="108" y="278" font-size="14" fill="#f0eefc">帮我约一下 Alex，Thursday 下午四点的 sync，</text>
+      <text x="108" y="300" font-size="14" fill="#f0eefc">agenda：Q3 roadmap。<tspan fill="#a99bff">▎</tspan></text>
+      <!-- send button -->
+      <rect x="612" y="284" width="46" height="24" rx="6" fill="#4a3d8f"/>
+      <text x="635" y="300" font-size="12" fill="#ffffff" text-anchor="middle">Send</text>
+    </g>
+
+    <!-- toast: clipboard restored -->
+    <g>
+      <rect x="250" y="360" width="260" height="40" rx="20" fill="#101014" stroke="#3d3d47"/>
+      <text x="380" y="385" font-size="13" fill="#b9b9c2" text-anchor="middle">📋 剪贴板已恢复 · Clipboard restored</text>
+    </g>
+
+    <!-- annotation -->
+    <g>
+      <rect x="504" y="196" width="176" height="44" rx="10" fill="#221f33" stroke="#4a3d8f"/>
+      <text x="520" y="214" font-size="12" fill="#a99bff">松开 ⌥ → 文字自动出现</text>
+      <text x="520" y="230" font-size="12" fill="#a99bff">Release — text just appears</text>
+      <line x1="560" y1="240" x2="480" y2="256" stroke="#4a3d8f" stroke-width="1.5"/>
+    </g>
+  </g>
+</svg>
