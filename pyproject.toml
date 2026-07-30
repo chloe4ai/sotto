@@ -1,20 +1,23 @@
 [project]
 name = "sotto"
 version = "0.1.0"
-description = "Speak softly, never type. Privacy-first AI voice dictation for macOS — hold a key, speak, get polished text in any app."
+description = "Speak softly, never type. Privacy-first AI voice dictation for macOS and Windows — hold a key, speak, get polished text in any app."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [{ name = "Chloe Tan" }]
-keywords = ["dictation", "voice", "speech-to-text", "whisper", "macos"]
+keywords = ["dictation", "voice", "speech-to-text", "whisper", "macos", "windows"]
 dependencies = [
-    "rumps>=0.4.0",
     "pynput>=1.7.6",
     "sounddevice>=0.4.6",
     "numpy>=1.26",
     "faster-whisper>=1.0.0",
-    "pyobjc-framework-Cocoa>=10.0",
-    "pyobjc-framework-ApplicationServices>=10.0",
+    "rumps>=0.4.0; sys_platform == 'darwin'",
+    "pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'",
+    "pyobjc-framework-ApplicationServices>=10.0; sys_platform == 'darwin'",
+    "pystray>=0.19.5; sys_platform == 'win32'",
+    "pillow>=10.0; sys_platform == 'win32'",
+    "pyperclip>=1.8.2; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]

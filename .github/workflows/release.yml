@@ -1,0 +1,43 @@
+# Builds the Windows executable and attaches it to a GitHub release.
+# Runs when a release is published, or manually via workflow_dispatch.
+name: Build installers
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to upload assets to"
+        required: true
+        default: v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install . pyinstaller
+      - name: Import smoke test
+        run: python -c "import sotto.winapp, sotto.injector, sotto.__main__; print('imports OK')"
+      - name: Build Sotto.exe
+        run: >
+          pyinstaller --noconfirm --clean --onefile --noconsole --name Sotto
+          --collect-all faster_whisper
+          --collect-all ctranslate2
+          --collect-all onnxruntime
+          --collect-all av
+          --collect-all tokenizers
+          --collect-all sounddevice
+          packaging/pyi_entry.py
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.inputs.tag || github.event.release.tag_name }}" dist/Sotto.exe --clobber

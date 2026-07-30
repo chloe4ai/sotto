@@ -1,6 +1,6 @@
 """Entry point.
 
-    sotto                     run the menu bar app
+    sotto                     run the menu bar / system tray app
     sotto --doctor            check permissions and setup, print what's wrong
     sotto --file audio.wav    transcribe + polish a file and print it (debug)
 """
@@ -25,15 +25,19 @@ def main() -> None:
         _transcribe_file(args.file, raw=args.raw)
         return
 
-    if sys.platform != "darwin":
-        sys.exit("Sotto currently supports macOS only.")
-
     if args.doctor:
         sys.exit(_doctor())
 
-    from .app import SottoApp
+    if sys.platform == "darwin":
+        from .app import SottoApp
 
-    SottoApp().run()
+        SottoApp().run()
+    elif sys.platform == "win32":
+        from .winapp import WinApp
+
+        WinApp().run()
+    else:
+        sys.exit("Sotto currently supports macOS and Windows.")
 
 
 def _version() -> str:
@@ -61,7 +65,6 @@ def _doctor() -> int:
     import os
 
     from .config import CONFIG_PATH, Config
-    from .permissions import accessibility_trusted, microphone_ok
 
     config = Config.load()
     failures = 0
@@ -76,21 +79,26 @@ def _doctor() -> int:
 
     print("Sotto doctor\n")
 
-    check(
-        accessibility_trusted(),
-        "Accessibility permission (hotkey + paste)",
-        "System Settings → Privacy & Security → Accessibility: enable the app "
-        "you launch sotto from (e.g. Terminal), then restart sotto. "
-        "If it still fails, also enable it under Input Monitoring.",
-    )
+    if sys.platform == "darwin":
+        from .permissions import accessibility_trusted, microphone_ok
 
-    mic_ok, mic_detail = microphone_ok()
-    check(
-        mic_ok,
-        "Microphone" + ("" if mic_ok else f" ({mic_detail})"),
-        "System Settings → Privacy & Security → Microphone: enable the app "
-        "you launch sotto from.",
-    )
+        check(
+            accessibility_trusted(),
+            "Accessibility permission (hotkey + paste)",
+            "System Settings → Privacy & Security → Accessibility: enable the app "
+            "you launch sotto from (e.g. Terminal), then restart sotto. "
+            "If it still fails, also enable it under Input Monitoring.",
+        )
+
+        mic_ok, mic_detail = microphone_ok()
+        check(
+            mic_ok,
+            "Microphone" + ("" if mic_ok else f" ({mic_detail})"),
+            "System Settings → Privacy & Security → Microphone: enable the app "
+            "you launch sotto from.",
+        )
+    else:
+        print("  • Permission checks are macOS-only — Windows needs no setup")
 
     model_dir = os.path.join(
         os.path.expanduser("~/.cache/huggingface/hub"),
