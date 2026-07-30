@@ -43,7 +43,7 @@ hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ poli
 
 Requires macOS 11+ (Apple Silicon or Intel) and
 [uv](https://docs.astral.sh/uv/) (`brew install uv`). Python is fetched
-automatically if needed — any 3.10–3.14 works.
+automatically if needed — any 3.11–3.14 works.
 
 ```bash
 git clone https://github.com/chloe4ai/sotto.git
