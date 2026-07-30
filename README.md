@@ -120,9 +120,18 @@ sotto. If you see `This process is not trusted!` in the terminal, it's the
 same issue. Note: after your terminal app updates, macOS may silently revoke
 the permission — toggle it off and on again.
 
-**"Could not access microphone."** Enable your terminal app under System
-Settings → Privacy & Security → Microphone. If the app never appears in the
-list, run sotto once and speak — macOS adds it after the first attempt.
+**"Microphone blocked."** The Microphone permission belongs to the app you
+launched sotto from (Terminal, iTerm, …), not to sotto itself. Enable that app
+under System Settings → Privacy & Security → Microphone, then quit and rerun
+sotto. Two gotchas:
+
+- If you ever clicked **Don't Allow** on the mic prompt, macOS never asks
+  again — you must flip the toggle manually, or re-trigger the prompt with
+  `tccutil reset Microphone com.apple.Terminal` (adjust the bundle id for
+  your terminal).
+- If your input device is a Bluetooth headset or webcam, try again after
+  selecting the built-in mic in System Settings → Sound → Input. (Sotto
+  falls back to the device's native sample rate automatically.)
 
 **First dictation is slow or fails offline.** The Whisper model downloads
 from Hugging Face on first use (~150 MB for `base`). Stay online for that one

@@ -10,6 +10,9 @@ import subprocess
 ACCESSIBILITY_PANE = (
     "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
 )
+MICROPHONE_PANE = (
+    "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
+)
 
 
 def accessibility_trusted(prompt: bool = False) -> bool:
@@ -34,6 +37,10 @@ def accessibility_trusted(prompt: bool = False) -> bool:
 
 def open_accessibility_settings() -> None:
     subprocess.run(["open", ACCESSIBILITY_PANE], check=False)
+
+
+def open_microphone_settings() -> None:
+    subprocess.run(["open", MICROPHONE_PANE], check=False)
 
 
 def microphone_ok() -> tuple[bool, str]:
