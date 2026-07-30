@@ -5,9 +5,9 @@
 > *sotto voce* — in a soft voice.
 > **Speak softly, never type.** 轻声一说，文字即成。
 
-Sotto is a privacy-first AI voice dictation tool for macOS. Hold a key, speak
-naturally in any app — Sotto transcribes **on your device**, cleans up the
-filler words, and drops polished text right where your cursor is.
+Sotto is a privacy-first AI voice dictation tool for macOS and Windows. Hold a
+key, speak naturally in any app — Sotto transcribes **on your device**, cleans
+up the filler words, and drops polished text right where your cursor is.
 
 Inspired by [Typeless](https://www.typeless.com/), but with a different set of
 values: **local-first, transparent, free**.
@@ -60,9 +60,45 @@ hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ poli
 4. Text is **pasted into whatever app you're in** and your old clipboard is
    restored.
 
-## Install
+## Install — download, double-click, done
 
-Requires macOS 11+ (Apple Silicon or Intel) and
+No terminal needed. Grab the file for your system from the
+[**latest release**](https://github.com/chloe4ai/sotto/releases/latest):
+
+### macOS (Apple Silicon) — `Sotto-x.y.z-macos-arm64.dmg`
+
+1. Download the `.dmg` and double-click it.
+2. Drag **Sotto** onto the **Applications** folder in the window that opens.
+3. Open Sotto from Applications — the first time, **right-click the app →
+   Open → Open**. (Sotto isn't notarized with Apple, so a plain double-click
+   shows a warning. If macOS still refuses: System Settings → Privacy &
+   Security → scroll down → **Open Anyway**.)
+4. macOS asks for two permissions — allow both, they are the whole surface:
+   **Microphone** (to hear you) and **Accessibility** (to detect the hotkey
+   and paste text). After granting Accessibility, quit and reopen Sotto once.
+5. Look for 🎙 in the menu bar. Put your cursor in any text field, hold
+   **right ⌥**, speak, release.
+
+> Intel Macs: no prebuilt DMG yet — use [install from source](#install-from-source-developers).
+
+### Windows 10/11 — `Sotto.exe` (beta)
+
+1. Download `Sotto.exe` and double-click it. Nothing to install — it's a
+   portable app (first start takes ~20–30 s while it unpacks itself).
+2. If SmartScreen shows "Windows protected your PC", click **More info →
+   Run anyway** (Sotto is open source but not code-signed).
+3. Find the round Sotto icon in the system tray (bottom-right). Put your
+   cursor in any text field, hold **right Alt**, speak, release.
+4. The first dictation downloads the speech model (~150 MB) — internet is
+   needed that one time; everything runs on your PC afterwards.
+
+Both builds are unsigned because there's no paid developer certificate behind
+this project — that's what the security prompts are about, not malware. If in
+doubt, read the code or build from source below.
+
+## Install from source (developers)
+
+Requires macOS 11+ (Apple Silicon or Intel) or Windows 10/11, and
 [uv](https://docs.astral.sh/uv/) (`brew install uv`). Python is fetched
 automatically if needed — any 3.11–3.14 works.
 
@@ -199,7 +235,8 @@ uv run --extra dev pytest
 - [ ] Speak-to-edit: select text, speak an instruction ("make this shorter")
 - [ ] Context awareness: adapt tone to the frontmost app
 - [ ] Translation into languages other than English (via AI polish)
-- [ ] Windows/Linux support
+- [x] Windows support (beta — system tray app + portable EXE)
+- [ ] Linux support
 
 ## License
 
