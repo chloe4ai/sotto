@@ -9,16 +9,18 @@ def test_defaults():
     assert c.hotkey == "alt_r"
     assert c.model == "base"
     assert c.polish == "auto"
+    assert c.task == "transcribe"
 
 
 def test_roundtrip(tmp_path, monkeypatch):
     monkeypatch.setattr(config_mod, "CONFIG_DIR", tmp_path)
     monkeypatch.setattr(config_mod, "CONFIG_PATH", tmp_path / "config.json")
-    c = Config(model="small", polish="local")
+    c = Config(model="small", polish="local", task="translate")
     c.save()
     loaded = Config.load()
     assert loaded.model == "small"
     assert loaded.polish == "local"
+    assert loaded.task == "translate"
 
 
 def test_bad_config_falls_back_to_defaults(tmp_path, monkeypatch):

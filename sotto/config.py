@@ -18,6 +18,9 @@ class Config:
     model: str = "base"
     # "auto" lets Whisper detect the language (works for mixed zh/en speech)
     language: str = "auto"
+    # "transcribe" keeps the spoken language; "translate" uses Whisper's
+    # built-in translation task to output English no matter what you speak.
+    task: str = "transcribe"
     # "auto" = use Claude if ANTHROPIC_API_KEY is set, else local cleanup.
     # "ai" = always Claude, "local" = never call the network, "off" = raw text.
     polish: str = "auto"

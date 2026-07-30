@@ -61,6 +61,7 @@ class Transcriber:
         segments, _info = model.transcribe(
             audio,
             language=language,
+            task=self._config.task,
             vad_filter=True,
             initial_prompt=hint or None,
         )

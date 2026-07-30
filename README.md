@@ -83,8 +83,16 @@ uv run sotto --doctor
 - Put your cursor in any text field — Mail, Slack, WeChat, your editor, a
   ChatGPT/Claude prompt box.
 - Hold **right ⌥**, say what you want, release.
-- 🎙 in the menu bar: switch Whisper model size, polish mode, edit your
-  personal dictionary.
+- 🎙 in the menu bar: switch Whisper model size, polish mode, translation,
+  edit your personal dictionary.
+
+### Translate as you speak
+
+Toggle **Translate to English** in the menu bar (🎙) and Sotto outputs
+English no matter what language you speak — 说中文，出英文. This uses
+Whisper's built-in translation, so it works fully offline too. Translation
+quality scales with model size: `base` is serviceable, `small` or `medium`
+is noticeably better. (Whisper only translates *into* English.)
 
 ### Polish modes
 
@@ -108,7 +116,7 @@ cloudy tan -> Chloe Tan
 ### Config
 
 `~/.sotto/config.json` — hotkey, model size (`tiny`…`large-v3`), language
-(`auto` handles mixed 中英), polish mode.
+(`auto` handles mixed 中英), polish mode, task (`transcribe` or `translate`).
 
 ## Troubleshooting
 
@@ -166,9 +174,10 @@ uv run --extra dev pytest
 
 ## Roadmap
 
+- [x] Translation mode: speak any language, get English (Whisper translate)
 - [ ] Speak-to-edit: select text, speak an instruction ("make this shorter")
 - [ ] Context awareness: adapt tone to the frontmost app
-- [ ] Real-time translation mode
+- [ ] Translation into languages other than English (via AI polish)
 - [ ] Windows/Linux support
 
 ## License

@@ -61,11 +61,16 @@ class SottoApp(rumps.App):
             f"Hold {hotkey_label(hotkey_name)} to speak"
         )
         self.status_item.set_callback(None)
+        self.translate_item = rumps.MenuItem(
+            "Translate to English", callback=self.toggle_translate
+        )
+        self.translate_item.state = self.config.task == "translate"
         self.menu = [
             self.status_item,
             None,
             self._build_model_menu(),
             self._build_polish_menu(),
+            self.translate_item,
             rumps.MenuItem("Edit Dictionary…", callback=self.open_dictionary),
             None,
         ]
@@ -143,6 +148,12 @@ class SottoApp(rumps.App):
         self.config.save()
         for item in self.menu["Polish"].values():
             item.state = item.title == sender.title
+
+    def toggle_translate(self, sender: rumps.MenuItem) -> None:
+        translating = not sender.state
+        sender.state = translating
+        self.config.task = "translate" if translating else "transcribe"
+        self.config.save()
 
     def open_dictionary(self, _sender) -> None:
         path = self.dictionary.ensure_file()
