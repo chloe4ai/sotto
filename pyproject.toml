@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Speak softly, never type. Privacy-first AI voice dictation for macOS — hold a key, speak, get polished text in any app."
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Chloe Tan" }]
 keywords = ["dictation", "voice", "speech-to-text", "whisper", "macos"]
 dependencies = [
