@@ -11,7 +11,11 @@ from .dictionary import Dictionary
 from .hotkey import HoldToTalk, resolve_key
 from .hud import Hud
 from .injector import Injector
-from .permissions import accessibility_trusted, open_accessibility_settings
+from .permissions import (
+    accessibility_trusted,
+    open_accessibility_settings,
+    open_microphone_settings,
+)
 from .polisher import Polisher
 from .recorder import SAMPLE_RATE, Recorder
 from .transcriber import Transcriber
@@ -50,6 +54,7 @@ class SottoApp(rumps.App):
         self.injector = Injector(self.config)
         self.hud = Hud()
         self._busy = False
+        self._mic_help_shown = False
 
         hotkey_name = self._valid_hotkey_name()
         self.status_item = rumps.MenuItem(
@@ -163,10 +168,23 @@ class SottoApp(rumps.App):
         try:
             self.recorder.start()
         except Exception as exc:  # no mic permission, device busy, ...
-            self._report_error("Could not access microphone", str(exc))
+            self._mic_failed(exc)
             return
         self.title = "🔴"
         self.hud.listening()
+
+    def _mic_failed(self, exc: Exception) -> None:
+        self._report_error(
+            "Microphone blocked — check System Settings",
+            f"{exc} — enable the app you launched sotto from under "
+            "System Settings → Privacy & Security → Microphone, then "
+            "quit and rerun sotto. (`sotto --doctor` verifies this.)",
+        )
+        # Take the user straight to the right pane, once per run. This runs
+        # on the hotkey listener thread, where a modal alert isn't safe.
+        if not self._mic_help_shown:
+            self._mic_help_shown = True
+            open_microphone_settings()
 
     def on_hotkey_up(self) -> None:
         if not self.recorder.recording:

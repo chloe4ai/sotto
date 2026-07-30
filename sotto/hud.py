@@ -82,6 +82,15 @@ class _HudBridge(NSObject):
         if self.panel is None:
             return
         self.label.setStringValue_(text)
+        # Grow the capsule to fit longer messages (e.g. errors).
+        self.label.sizeToFit()
+        width = max(_WIDTH, self.label.frame().size.width + 44)
+        screen = (NSScreen.mainScreen() or NSScreen.screens()[0]).frame()
+        x = (screen.size.width - width) / 2
+        self.panel.setFrame_display_(
+            NSMakeRect(x, _MARGIN_BOTTOM, width, _HEIGHT), True
+        )
+        self.label.setFrame_(NSMakeRect(0, (_HEIGHT - 20) / 2, width, 20))
         self.panel.orderFrontRegardless()
 
     def hide_(self, _):
