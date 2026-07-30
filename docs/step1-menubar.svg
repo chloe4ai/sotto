@@ -51,9 +51,9 @@
       <rect x="40" y="120" width="360" height="180" rx="14" fill="#26262e" stroke="#3d3d47"/>
       <text x="64" y="160" font-size="18" font-weight="700" fill="#e8e8ec">1 · Sotto lives in your menu bar</text>
       <text x="64" y="192" font-size="13.5" fill="#b9b9c2">Run <tspan font-family="ui-monospace, Menlo, monospace" fill="#a99bff">uv run sotto</tspan> — the 🎙 icon appears.</text>
-      <text x="64" y="216" font-size="13.5" fill="#b9b9c2">Pick a Whisper model, a polish mode, and</text>
-      <text x="64" y="236" font-size="13.5" fill="#b9b9c2">edit your personal dictionary. 常驻菜单栏，</text>
-      <text x="64" y="256" font-size="13.5" fill="#b9b9c2">模型与润色模式随点随换。</text>
+      <text x="64" y="216" font-size="13.5" fill="#b9b9c2">Pick a Whisper model, a polish mode, toggle</text>
+      <text x="64" y="236" font-size="13.5" fill="#b9b9c2">translate mode, and edit your personal</text>
+      <text x="64" y="256" font-size="13.5" fill="#b9b9c2">dictionary — all one click away.</text>
     </g>
   </g>
 </svg>
