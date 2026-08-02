@@ -3,7 +3,7 @@
 [![CI](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml/badge.svg)](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml)
 
 > *sotto voce* — in a soft voice.
-> **Speak softly, never type.** 轻声一说，文字即成。
+> **Speak softly, never type.** 
 
 Sotto is a privacy-first AI voice dictation tool for macOS and Windows. Hold a
 key, speak naturally in any app — Sotto transcribes **on your device**, cleans
