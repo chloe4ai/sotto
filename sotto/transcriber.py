@@ -52,9 +52,12 @@ class Transcriber:
                 )
             return self._model
 
-    def transcribe(self, audio: np.ndarray) -> str:
+    def transcribe(self, audio: np.ndarray, language: str | None = None) -> str:
+        """`language` is the code for the hotkey that was pressed; it falls
+        back to the configured default. "auto" means let Whisper detect it."""
         model = self._ensure_model()
-        language = None if self._config.language == "auto" else self._config.language
+        language = language or self._config.language
+        language = None if language in ("auto", "") else language
         # Feeding custom terms as the initial prompt biases Whisper toward
         # spelling them correctly (names, jargon, product terms).
         hint = self._dictionary.prompt_hint()

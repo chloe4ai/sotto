@@ -1,7 +1,7 @@
 [project]
 name = "sotto"
-version = "0.1.0"
-description = "Speak softly, never type. Privacy-first AI voice dictation for macOS and Windows — hold a key, speak, get polished text in any app."
+version = "0.2.0"
+description = "Speak softly, never type. Privacy-first AI voice dictation for macOS and Windows — tap a key, speak, tap again, get polished text in any app."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"

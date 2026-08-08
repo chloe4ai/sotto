@@ -5,9 +5,10 @@
 > *sotto voce* — in a soft voice.
 > **Speak softly, never type.** 
 
-Sotto is a privacy-first AI voice dictation tool for macOS and Windows. Hold a
-key, speak naturally in any app — Sotto transcribes **on your device**, cleans
-up the filler words, and drops polished text right where your cursor is.
+Sotto is a privacy-first AI voice dictation tool for macOS and Windows. Tap a
+key, speak naturally in any app, tap it again — Sotto transcribes **on your
+device**, cleans up the filler words, and drops polished text right where your
+cursor is. One key per language: **F13 for 中文, F15 for English**.
 
 Inspired by [Typeless](https://www.typeless.com/), but with a different set of
 values: **local-first, transparent, free**.
@@ -17,14 +18,14 @@ values: **local-first, transparent, free**.
 | Speech recognition | 🏠 On-device (Whisper)         | ☁️ Cloud only    |
 | Works offline      | ✅                             | ❌              |
 | AI cleanup         | Optional (local rules / Claude)| Always cloud    |
-| Mixed 中文/English  | ✅ auto-detected               | ✅              |
+| Mixed 中文/English  | ✅ one key per language        | ✅              |
 | Price              | Free, MIT licensed             | $144/year       |
 | Permissions        | Mic + Accessibility only       | Screen, camera… |
 
 ## How it works
 
 ```
-hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ polish ──▶ ⌘V insert
+press F13 ──▶ 🎤 record ──▶ press F13 ──▶ 🏠 Whisper (local) ──▶ ✨ polish ──▶ ⌘V insert
 ```
 
 ### In four steps
@@ -35,11 +36,11 @@ hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ poli
 
 <img src="docs/step1-menubar.svg" width="760" alt="Sotto in the macOS menu bar with its dropdown menu open">
 
-**2 — Hold right ⌥ and just talk.** A floating capsule shows Sotto is listening — in any app, any text field.
+**2 — Press F13 (中文) or F15 (English) and just talk.** No holding. A floating capsule shows Sotto is listening, and in which language.
 
-<img src="docs/step2-hold-speak.svg" width="760" alt="Floating Listening capsule while dictating into a mail compose window">
+<img src="docs/step2-press-speak.svg" width="760" alt="Floating Listening capsule while dictating into a mail compose window">
 
-**3 — Release. Sotto polishes.** Fillers dropped, self-corrections applied, punctuation fixed — on device, or via Claude if you opt in.
+**3 — Press the same key again. Sotto polishes.** Fillers dropped, self-corrections applied, punctuation fixed — on device, or via Claude if you opt in.
 
 <img src="docs/step3-polish.svg" width="760" alt="Raw speech with filler words transformed into clean polished text">
 
@@ -48,9 +49,10 @@ hold ⌥ ──▶ 🎤 record ──▶ 🏠 Whisper (local) ──▶ ✨ poli
 <img src="docs/step4-insert.svg" width="760" alt="Polished text inserted into a Slack message box, clipboard restored toast">
 
 
-1. **Hold the right Option key** (configurable) and speak — a floating capsule
-   shows Sotto is listening.
-2. **Release.** Audio is transcribed locally with
+1. **Press F13 (中文) or F15 (English)** and speak — no holding, your finger
+   comes straight back off. A floating capsule shows Sotto is listening and in
+   which language.
+2. **Press the same key again.** Audio is transcribed locally with
    [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — it never
    leaves your Mac.
 3. The transcript is **polished**: filler words (um, uh, 嗯, 呃) removed,
@@ -76,8 +78,8 @@ No terminal needed. Grab the file for your system from the
 4. macOS asks for two permissions — allow both, they are the whole surface:
    **Microphone** (to hear you) and **Accessibility** (to detect the hotkey
    and paste text). After granting Accessibility, quit and reopen Sotto once.
-5. Look for 🎙 in the menu bar. Put your cursor in any text field, hold
-   **right ⌥**, speak, release.
+5. Look for 🎙 in the menu bar. Put your cursor in any text field, press
+   **F13** (中文) or **F15** (English), speak, press the same key again.
 
 > Intel Macs: no prebuilt DMG yet — use [install from source](#install-from-source-developers).
 
@@ -88,7 +90,8 @@ No terminal needed. Grab the file for your system from the
 2. If SmartScreen shows "Windows protected your PC", click **More info →
    Run anyway** (Sotto is open source but not code-signed).
 3. Find the round Sotto icon in the system tray (bottom-right). Put your
-   cursor in any text field, hold **right Alt**, speak, release.
+   cursor in any text field, press **F13** (中文) or **F15** (English), speak,
+   press the same key again.
 4. The first dictation downloads the speech model (~150 MB) — internet is
    needed that one time; everything runs on your PC afterwards.
 
@@ -139,9 +142,34 @@ uv run sotto --doctor
 
 - Put your cursor in any text field — Mail, Slack, WeChat, your editor, a
   ChatGPT/Claude prompt box.
-- Hold **right ⌥**, say what you want, release.
+- Press **F13** (中文) or **F15** (English), say what you want, press the same
+  key again. Nothing to hold down.
 - 🎙 in the menu bar: switch Whisper model size, polish mode, translation,
   edit your personal dictionary.
+
+### One key per language
+
+| Key     | Dictates in            |
+| ------- | ---------------------- |
+| **F13** | 中文                    |
+| **F15** | English                |
+
+Telling Whisper the language up front is more accurate than letting it guess,
+and it can't drift mid-sentence — which is the failure mode when you switch
+languages often. The capsule shows which language you're recording in.
+
+Notes:
+
+- **Press to start, press to stop.** Holding the key does nothing extra; it's
+  the same as one press. A take stops on its own after `max_duration`
+  (5 minutes by default) and is transcribed rather than lost.
+- Pressing the *other* language key while recording just ends the take in
+  progress — it doesn't switch language mid-sentence.
+- **F13–F20 only exist on full-size and external keyboards.** On a laptop
+  keyboard, pick keys you have (see Config below) or remap them with a tool
+  like [Karabiner-Elements](https://karabiner-elements.pqrs.org/).
+- Modifier keys (⌥ ⌘ ⌃ ⇧) can't be dictation keys any more: a stray tap while
+  typing would silently start recording. Sotto ignores them and says so.
 
 ### Translate as you speak
 
@@ -172,12 +200,30 @@ cloudy tan -> Chloe Tan
 
 ### Config
 
-`~/.sotto/config.json` — hotkey, model size (`tiny`…`large-v3`), language
-(`auto` handles mixed 中英), polish mode, task (`transcribe` or `translate`).
+`~/.sotto/config.json` — dictation keys, model size (`tiny`…`large-v3`),
+polish mode, task (`transcribe` or `translate`), `max_duration`.
+
+Any [pynput key name](https://pynput.readthedocs.io/en/latest/keyboard.html)
+works (`f13`…`f20`, `insert`, `home`, a single character), paired with a
+Whisper language code — or `"auto"` to let Whisper detect it:
+
+```json
+{
+  "hotkeys": {
+    "f13": "zh",
+    "f15": "en",
+    "f14": "auto"
+  }
+}
+```
+
+Upgrading from a Sotto that used the old hold-to-talk `hotkey` setting? It's
+migrated for you: F13/F15 are added, and your old key is kept as a toggle
+unless it was a modifier.
 
 ## Troubleshooting
 
-**Nothing happens when I hold the key.** This is almost always the
+**Nothing happens when I press the key.** This is almost always the
 Accessibility permission. Run `uv run sotto --doctor` — if it shows ✗, enable
 your terminal app in System Settings → Privacy & Security → **Accessibility**
 (and, on some macOS versions, **Input Monitoring** too), then quit and rerun
@@ -203,8 +249,18 @@ from Hugging Face on first use (~150 MB for `base`). Stay online for that one
 dictation; everything is local afterwards. The HUD shows "⏳ Loading model…"
 while this happens.
 
-**Text lands in the wrong app.** Sotto pastes into whatever app has focus
-when you release the key. Click into the target text field before speaking.
+**My dictation key does nothing, but the others work.** F13–F20 aren't on
+laptop keyboards, and some apps or macOS shortcuts claim keys first. Check
+System Settings → Keyboard → Keyboard Shortcuts for a conflict, or pick a
+different key in `~/.sotto/config.json`.
+
+**Text lands in the wrong app.** Sotto pastes into whatever app has focus when
+you press the key the second time. Click into the target text field before
+speaking.
+
+**It recorded forever / I forgot to press stop.** Takes end automatically
+after `max_duration` seconds (300 by default) and are transcribed normally.
+Set it to `0` to disable the cap.
 
 **Pasting replaced my clipboard.** Sotto restores your previous clipboard
 about half a second after pasting (text only — images are not restored).
@@ -232,6 +288,8 @@ uv run --extra dev pytest
 ## Roadmap
 
 - [x] Translation mode: speak any language, get English (Whisper translate)
+- [x] Press-to-toggle dictation, one key per language (F13 中文 / F15 English)
+- [ ] Set the dictation keys from the menu bar instead of the config file
 - [ ] Speak-to-edit: select text, speak an instruction ("make this shorter")
 - [ ] Context awareness: adapt tone to the frontmost app
 - [ ] Translation into languages other than English (via AI polish)

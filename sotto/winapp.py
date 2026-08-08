@@ -12,9 +12,9 @@ import threading
 import pystray
 from PIL import Image, ImageDraw
 
-from .config import Config
+from .config import DEFAULT_HOTKEYS, Config, is_modifier
 from .dictionary import Dictionary
-from .hotkey import HoldToTalk, resolve_key
+from .hotkey import PressToToggle, hotkey_summary, language_label, resolve_key
 from .injector import Injector
 from .polisher import Polisher
 from .recorder import SAMPLE_RATE, Recorder
@@ -98,8 +98,8 @@ class TkHud(threading.Thread):
         if self._queue is not None:
             self._queue.put(msg)
 
-    def listening(self) -> None:
-        self._put("🔴  Listening…")
+    def listening(self, language: str | None = None) -> None:
+        self._put(f"🔴  Listening… {language}" if language else "🔴  Listening…")
 
     def processing(self) -> None:
         self._put("✨  Polishing…")
@@ -125,39 +125,56 @@ class WinApp:
         self.injector = Injector(self.config)
         self.hud = TkHud()
         self._busy = False
+        # Presses arrive on the pynput listener thread; keep start/stop atomic.
+        self._toggle_lock = threading.RLock()
+        self._active_language: str | None = None
+        self._auto_stop: threading.Timer | None = None
 
         self._idle_icon = _tray_image("#4a3d8f")
         self._recording_icon = _tray_image("#e03131")
 
-        hotkey_name = self._valid_hotkey_name()
-        self.hotkey = HoldToTalk(
-            hotkey_name, self.on_hotkey_down, self.on_hotkey_up
-        )
+        self.hotkeys = self._valid_hotkeys()
+        self.hotkey = PressToToggle(self.hotkeys, self.on_hotkey)
         self.icon = pystray.Icon(
             "Sotto",
             self._idle_icon,
-            "Sotto — hold right Alt and speak",
-            menu=self._build_menu(hotkey_name),
+            f"Sotto — {hotkey_summary(self.hotkeys)}",
+            menu=self._build_menu(),
         )
 
-    def _valid_hotkey_name(self) -> str:
-        try:
-            resolve_key(self.config.hotkey)
-            return self.config.hotkey
-        except ValueError:
+    def _valid_hotkeys(self) -> dict:
+        """Drop anything pynput can't resolve, and any modifier — in toggle
+        mode a stray modifier tap would start recording without you noticing."""
+        valid = {}
+        for key, language in (self.config.hotkeys or {}).items():
+            try:
+                resolve_key(key)
+            except ValueError:
+                print(f"Sotto: unknown hotkey {key!r} in config, ignoring it.",
+                      file=sys.stderr)
+                continue
+            if is_modifier(key):
+                print(
+                    f"Sotto: {key!r} is a modifier and can't be a toggle key "
+                    "(it would fire while you type), ignoring it.",
+                    file=sys.stderr,
+                )
+                continue
+            valid[key] = language or "auto"
+        if not valid:
             print(
-                f"Unknown hotkey {self.config.hotkey!r} in config, "
-                "falling back to alt_r (right Alt).",
+                "Sotto: no usable dictation keys in config, falling back to "
+                f"{', '.join(DEFAULT_HOTKEYS)}.",
                 file=sys.stderr,
             )
-            return "alt_r"
+            return dict(DEFAULT_HOTKEYS)
+        return valid
 
     # ----- menu -----
 
-    def _build_menu(self, hotkey_name: str) -> pystray.Menu:
-        key_hint = "right Alt" if hotkey_name == "alt_r" else hotkey_name
+    def _build_menu(self) -> pystray.Menu:
         return pystray.Menu(
-            pystray.MenuItem(f"Hold {key_hint} to speak", None, enabled=False),
+            pystray.MenuItem(hotkey_summary(self.hotkeys), None, enabled=False),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(
                 "Model",
@@ -227,21 +244,30 @@ class WinApp:
 
     # ----- dictation flow -----
 
-    def on_hotkey_down(self) -> None:
-        if self._busy:
-            return
+    def on_hotkey(self, key_name: str) -> None:
+        """One press starts dictation, the next one ends it. Pressing the other
+        language's key while recording just ends the take in progress."""
+        with self._toggle_lock:
+            if self.recorder.recording:
+                self._stop_dictation()
+            elif not self._busy:  # still transcribing the previous take
+                self._start_dictation(self.hotkeys.get(key_name, "auto"))
+
+    def _start_dictation(self, language: str) -> None:
         try:
             self.recorder.start()
         except Exception as exc:  # no mic, device busy, ...
             self.hud.error(f"Microphone unavailable: {exc}")
             return
+        self._active_language = language
         self.icon.icon = self._recording_icon
-        self.hud.listening()
+        self.hud.listening(language_label(language))
+        self._arm_auto_stop()
 
-    def on_hotkey_up(self) -> None:
-        if not self.recorder.recording:
-            return
+    def _stop_dictation(self) -> None:
+        self._cancel_auto_stop()
         audio = self.recorder.stop()
+        language, self._active_language = self._active_language, None
         self.icon.icon = self._idle_icon
         if len(audio) < SAMPLE_RATE * self.config.min_duration:
             self.hud.hide()
@@ -251,11 +277,40 @@ class WinApp:
         else:  # first run: model still downloading/loading
             self.hud.loading_model()
         self._busy = True
-        threading.Thread(target=self._process, args=(audio,), daemon=True).start()
+        threading.Thread(
+            target=self._process, args=(audio, language), daemon=True
+        ).start()
 
-    def _process(self, audio) -> None:
+    def _arm_auto_stop(self) -> None:
+        """Nothing holds the key down any more, so cap how long a take can run
+        and transcribe what we have rather than recording into the void."""
+        self._cancel_auto_stop()
+        if self.config.max_duration <= 0:
+            return
+        self._auto_stop = threading.Timer(
+            self.config.max_duration, self._auto_stop_fired
+        )
+        self._auto_stop.daemon = True
+        self._auto_stop.start()
+
+    def _cancel_auto_stop(self) -> None:
+        if self._auto_stop is not None:
+            self._auto_stop.cancel()
+            self._auto_stop = None
+
+    def _auto_stop_fired(self) -> None:
+        with self._toggle_lock:
+            if self.recorder.recording:
+                print(
+                    f"Sotto: stopped after {self.config.max_duration:.0f}s "
+                    "(max_duration) — transcribing what was recorded.",
+                    file=sys.stderr,
+                )
+                self._stop_dictation()
+
+    def _process(self, audio, language: str | None = None) -> None:
         try:
-            text = self.transcriber.transcribe(audio)
+            text = self.transcriber.transcribe(audio, language=language)
             text = self.polisher.polish(text)
             if text:
                 self.injector.insert(text)

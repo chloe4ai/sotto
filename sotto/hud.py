@@ -111,8 +111,10 @@ class Hud:
             b"showText:", text, False
         )
 
-    def listening(self) -> None:
-        self._show("🔴  Listening…")
+    def listening(self, language: str | None = None) -> None:
+        """The language label matters now that each key dictates a different
+        one — it's the only confirmation you hit the key you meant to."""
+        self._show(f"🔴  Listening… {language}" if language else "🔴  Listening…")
 
     def processing(self) -> None:
         self._show("✨  Polishing…")

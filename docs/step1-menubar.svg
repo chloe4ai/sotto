@@ -27,7 +27,7 @@
     <!-- dropdown menu -->
     <g>
       <rect x="470" y="40" width="230" height="252" rx="10" fill="#2b2b33" stroke="#3d3d47" stroke-width="1"/>
-      <text x="488" y="70" font-size="13" fill="#8a8a95">Hold ⌥ (right) to speak</text>
+      <text x="488" y="70" font-size="13" fill="#8a8a95">Press F13 中文 · F15 English</text>
       <line x1="482" y1="84" x2="688" y2="84" stroke="#3d3d47" stroke-width="1"/>
 
       <text x="488" y="110" font-size="13" fill="#e8e8ec">Model</text>

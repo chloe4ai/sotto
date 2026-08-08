@@ -6,9 +6,15 @@ import threading
 
 import rumps
 
-from .config import Config
+from .config import DEFAULT_HOTKEYS, Config, is_modifier
 from .dictionary import Dictionary
-from .hotkey import HoldToTalk, resolve_key
+from .hotkey import (  # re-exported: labels live with the key handling
+    PressToToggle,
+    hotkey_label,
+    hotkey_summary,
+    language_label,
+    resolve_key,
+)
 from .hud import Hud
 from .injector import Injector
 from .permissions import (
@@ -23,26 +29,6 @@ from .transcriber import Transcriber
 MODELS = ["tiny", "base", "small", "medium", "large-v3"]
 POLISH_MODES = ["auto", "ai", "local", "off"]
 
-_KEY_LABELS = {
-    "alt_r": "right ⌥",
-    "alt_l": "left ⌥",
-    "alt": "⌥",
-    "cmd_r": "right ⌘",
-    "cmd_l": "left ⌘",
-    "cmd": "⌘",
-    "ctrl_r": "right ⌃",
-    "ctrl_l": "left ⌃",
-    "ctrl": "⌃",
-    "shift_r": "right ⇧",
-    "shift_l": "left ⇧",
-    "shift": "⇧",
-}
-
-
-def hotkey_label(name: str) -> str:
-    return _KEY_LABELS.get(name, name.upper() if name.startswith("f") else name)
-
-
 class SottoApp(rumps.App):
     def __init__(self) -> None:
         super().__init__("Sotto", title="🎙", quit_button="Quit Sotto")
@@ -55,11 +41,13 @@ class SottoApp(rumps.App):
         self.hud = Hud()
         self._busy = False
         self._mic_help_shown = False
+        # Presses arrive on the pynput listener thread; keep start/stop atomic.
+        self._toggle_lock = threading.RLock()
+        self._active_language: str | None = None
+        self._auto_stop: threading.Timer | None = None
 
-        hotkey_name = self._valid_hotkey_name()
-        self.status_item = rumps.MenuItem(
-            f"Hold {hotkey_label(hotkey_name)} to speak"
-        )
+        self.hotkeys = self._valid_hotkeys()
+        self.status_item = rumps.MenuItem(hotkey_summary(self.hotkeys))
         self.status_item.set_callback(None)
         self.translate_item = rumps.MenuItem(
             "Translate to English", callback=self.toggle_translate
@@ -76,23 +64,37 @@ class SottoApp(rumps.App):
         ]
 
         self.transcriber.preload()
-        self.hotkey = HoldToTalk(
-            hotkey_name, self.on_hotkey_down, self.on_hotkey_up
-        )
+        self.hotkey = PressToToggle(self.hotkeys, self.on_hotkey)
         self.hotkey.start()
         self._check_permissions()
 
-    def _valid_hotkey_name(self) -> str:
-        try:
-            resolve_key(self.config.hotkey)
-            return self.config.hotkey
-        except ValueError:
+    def _valid_hotkeys(self) -> dict:
+        """Drop anything pynput can't resolve, and any modifier — in toggle
+        mode a stray modifier tap would start recording without you noticing."""
+        valid = {}
+        for key, language in (self.config.hotkeys or {}).items():
+            try:
+                resolve_key(key)
+            except ValueError:
+                print(f"Sotto: unknown hotkey {key!r} in config, ignoring it.",
+                      file=sys.stderr)
+                continue
+            if is_modifier(key):
+                print(
+                    f"Sotto: {key!r} is a modifier and can't be a toggle key "
+                    "(it would fire while you type), ignoring it.",
+                    file=sys.stderr,
+                )
+                continue
+            valid[key] = language or "auto"
+        if not valid:
             print(
-                f"Unknown hotkey {self.config.hotkey!r} in config, "
-                "falling back to alt_r (right Option).",
+                "Sotto: no usable dictation keys in config, falling back to "
+                f"{', '.join(DEFAULT_HOTKEYS)}.",
                 file=sys.stderr,
             )
-            return "alt_r"
+            return dict(DEFAULT_HOTKEYS)
+        return valid
 
     def _check_permissions(self) -> None:
         """Without Accessibility trust the hotkey listener runs but never
@@ -103,7 +105,7 @@ class SottoApp(rumps.App):
         clicked = rumps.alert(
             title="Sotto needs the Accessibility permission",
             message=(
-                "Without it, holding the hotkey does nothing.\n\n"
+                "Without it, pressing the dictation key does nothing.\n\n"
                 "In System Settings → Privacy & Security → Accessibility, "
                 "enable the app you launched sotto from (e.g. Terminal), "
                 "then quit and rerun sotto.\n\n"
@@ -173,16 +175,69 @@ class SottoApp(rumps.App):
 
     # ----- dictation flow -----
 
-    def on_hotkey_down(self) -> None:
-        if self._busy:
-            return
+    def on_hotkey(self, key_name: str) -> None:
+        """One press starts dictation, the next one ends it. Pressing the other
+        language's key while recording just ends the take in progress."""
+        with self._toggle_lock:
+            if self.recorder.recording:
+                self._stop_dictation()
+            elif not self._busy:  # still transcribing the previous take
+                self._start_dictation(self.hotkeys.get(key_name, "auto"))
+
+    def _start_dictation(self, language: str) -> None:
         try:
             self.recorder.start()
         except Exception as exc:  # no mic permission, device busy, ...
             self._mic_failed(exc)
             return
+        self._active_language = language
         self.title = "🔴"
-        self.hud.listening()
+        self.hud.listening(language_label(language))
+        self._arm_auto_stop()
+
+    def _stop_dictation(self) -> None:
+        self._cancel_auto_stop()
+        audio = self.recorder.stop()
+        language, self._active_language = self._active_language, None
+        self.title = "🎙"
+        if len(audio) < SAMPLE_RATE * self.config.min_duration:
+            self.hud.hide()
+            return
+        if self.transcriber.ready:
+            self.hud.processing()
+        else:  # first run: model still downloading/loading
+            self.hud.loading_model()
+        self._busy = True
+        threading.Thread(
+            target=self._process, args=(audio, language), daemon=True
+        ).start()
+
+    def _arm_auto_stop(self) -> None:
+        """Nothing holds the key down any more, so cap how long a take can run
+        and transcribe what we have rather than recording into the void."""
+        self._cancel_auto_stop()
+        if self.config.max_duration <= 0:
+            return
+        self._auto_stop = threading.Timer(
+            self.config.max_duration, self._auto_stop_fired
+        )
+        self._auto_stop.daemon = True
+        self._auto_stop.start()
+
+    def _cancel_auto_stop(self) -> None:
+        if self._auto_stop is not None:
+            self._auto_stop.cancel()
+            self._auto_stop = None
+
+    def _auto_stop_fired(self) -> None:
+        with self._toggle_lock:
+            if self.recorder.recording:
+                print(
+                    f"Sotto: stopped after {self.config.max_duration:.0f}s "
+                    "(max_duration) — transcribing what was recorded.",
+                    file=sys.stderr,
+                )
+                self._stop_dictation()
 
     def _mic_failed(self, exc: Exception) -> None:
         self._report_error(
@@ -197,24 +252,9 @@ class SottoApp(rumps.App):
             self._mic_help_shown = True
             open_microphone_settings()
 
-    def on_hotkey_up(self) -> None:
-        if not self.recorder.recording:
-            return
-        audio = self.recorder.stop()
-        self.title = "🎙"
-        if len(audio) < SAMPLE_RATE * self.config.min_duration:
-            self.hud.hide()
-            return
-        if self.transcriber.ready:
-            self.hud.processing()
-        else:  # first run: model still downloading/loading
-            self.hud.loading_model()
-        self._busy = True
-        threading.Thread(target=self._process, args=(audio,), daemon=True).start()
-
-    def _process(self, audio) -> None:
+    def _process(self, audio, language: str | None = None) -> None:
         try:
-            text = self.transcriber.transcribe(audio)
+            text = self.transcriber.transcribe(audio, language=language)
             text = self.polisher.polish(text)
             if text:
                 self.injector.insert(text)

@@ -84,7 +84,7 @@ def _doctor() -> int:
 
         check(
             accessibility_trusted(),
-            "Accessibility permission (hotkey + paste)",
+            "Accessibility permission (dictation keys + paste)",
             "System Settings → Privacy & Security → Accessibility: enable the app "
             "you launch sotto from (e.g. Terminal), then restart sotto. "
             "If it still fails, also enable it under Input Monitoring.",
@@ -112,6 +112,19 @@ def _doctor() -> int:
             "the first dictation will fetch it (network needed once)"
         )
 
+    from .hotkey import hotkey_label, language_label
+
+    keys = ", ".join(
+        f"{hotkey_label(k)} → {language_label(v)}"
+        for k, v in (config.hotkeys or {}).items()
+    )
+    print(f"  • Dictation keys (press once to start, again to stop): {keys}")
+    if config.task == "translate":
+        print(
+            "      → 'Translate to English' is on, so every key outputs "
+            "English regardless of the language you speak"
+        )
+
     if os.environ.get("ANTHROPIC_API_KEY"):
         polish_note = "Claude AI polish available"
     else:
@@ -129,7 +142,10 @@ def _doctor() -> int:
             "then run `sotto --doctor` again."
         )
     else:
-        print("Everything looks good. Run `sotto` and hold the hotkey to speak.")
+        print(
+            "Everything looks good. Run `sotto`, press a dictation key, "
+            "speak, and press it again."
+        )
     return 1 if failures else 0
 
 

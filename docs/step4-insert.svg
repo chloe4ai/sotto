@@ -40,7 +40,7 @@
     <!-- annotation -->
     <g>
       <rect x="504" y="196" width="176" height="44" rx="10" fill="#221f33" stroke="#4a3d8f"/>
-      <text x="520" y="214" font-size="12" fill="#a99bff">Release ⌥ —</text>
+      <text x="520" y="214" font-size="12" fill="#a99bff">Press F13 again —</text>
       <text x="520" y="230" font-size="12" fill="#a99bff">the text just appears</text>
       <line x1="560" y1="240" x2="480" y2="256" stroke="#4a3d8f" stroke-width="1.5"/>
     </g>
