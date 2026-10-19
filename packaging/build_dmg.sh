@@ -34,7 +34,7 @@ PLIST="$APP/Contents/Info.plist"
 # Menu-bar-only app: no Dock icon, no app switcher entry.
 /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$PLIST" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c \
-    "Add :NSMicrophoneUsageDescription string Sotto records your voice while you hold the hotkey and transcribes it on this Mac." \
+    "Add :NSMicrophoneUsageDescription string Sotto records your voice from when you press a dictation key until you press it again, and transcribes it on this Mac." \
     "$PLIST" 2>/dev/null || true
 # Re-sign (ad-hoc) after the plist edit so the bundle stays launchable.
 xattr -cr "$APP"

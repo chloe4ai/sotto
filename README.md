@@ -1,5 +1,7 @@
 # Sotto
 
+[![CI](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml/badge.svg)](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml)
+
 **A dictation tool that is always listening has already made the expensive trade.**
 
 *Sotto voce* — in a soft voice. Sotto is for people who write in two languages all day and would rather talk than type: press a key, speak, press it again. Audio is transcribed on your own machine with [faster-whisper](https://github.com/SYSTRAN/faster-whisper), cleaned up, and pasted where the cursor already is. **F13 for 中文, F15 for English.**
@@ -47,7 +49,19 @@ The menu bar carries model size (`tiny`…`large-v3`), polish mode, translate an
 
 ## Install
 
-**macOS (Apple Silicon):** open the `.dmg`, drag Sotto to Applications, then **right-click → Open → Open** the first time (not notarized — no paid developer certificate behind this project). Grant **Microphone** and **Accessibility** in System Settings › Privacy & Security, then quit and reopen once; macOS only applies a grant to newly started processes. That is the whole permission surface — no screen recording, no camera, no cloud.
+**macOS (Apple Silicon):** open the `.dmg` and drag Sotto to Applications. It is not notarized (no paid developer certificate behind this project), so macOS blocks the first launch:
+
+1. Open Sotto from Applications. When macOS says it can't be opened, click **Done** (not *Move to Trash*).
+2. Open System Settings › Privacy & Security, scroll down to **Security**, and click **Open Anyway** next to the message about Sotto.
+3. In the dialog that follows, click **Open Anyway** again and confirm with your password or Touch ID. This is only needed once.
+
+On macOS 15 Sequoia and later, *right-click → Open* no longer gets past this check; on macOS 14 and earlier it still works. If no **Open Anyway** button appears, remove the download quarantine flag in Terminal instead:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Sotto.app
+```
+
+Then grant **Microphone** and **Accessibility** in System Settings › Privacy & Security, and quit and reopen once; macOS only applies a grant to newly started processes. That is the whole permission surface — no screen recording, no camera, no cloud.
 
 **Windows 10/11 (beta):** run `Sotto.exe` — portable, nothing to install. SmartScreen → *More info → Run anyway*; first start unpacks for ~20–30 s.
 
@@ -80,5 +94,3 @@ First run downloads the Whisper `base` model (~150 MB, once); offline afterwards
 ## License
 
 MIT
-
-[![CI](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml/badge.svg)](https://github.com/chloe4ai/sotto/actions/workflows/ci.yml)

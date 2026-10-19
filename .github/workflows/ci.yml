@@ -24,3 +24,19 @@ jobs:
         run: |
           uv run sotto --version
           uv run sotto --help
+
+  test-windows:
+    # Mirrors the Windows installer build in release.yml, so a change that
+    # breaks the EXE's imports fails here before a release does.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install ".[dev]"
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Import smoke test
+        run: python -c "import sotto.winapp, sotto.injector, sotto.__main__; print('imports OK')"

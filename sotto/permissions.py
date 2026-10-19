@@ -2,7 +2,8 @@
 
 pynput needs the running process (your terminal, when launched with `uv run`)
 to be trusted for Accessibility — otherwise the hotkey listener starts but
-never receives events, which looks like "nothing happens when I hold the key".
+never receives events, which looks like "nothing happens when I press the
+dictation key".
 """
 
 import subprocess
