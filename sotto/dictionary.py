@@ -26,7 +26,7 @@ class Dictionary:
         self.corrections = []
         if not self._path.exists():
             return
-        for line in self._path.read_text().splitlines():
+        for line in self._path.read_text(encoding="utf-8").splitlines():
             line = line.split("#", 1)[0].strip()
             if not line:
                 continue
@@ -44,7 +44,14 @@ class Dictionary:
 
     def apply(self, text: str) -> str:
         for wrong, right in self.corrections:
-            text = re.sub(re.escape(wrong), right, text, flags=re.IGNORECASE)
+            # A function replacement is inserted verbatim; a string one would
+            # treat backslashes in `right` as escapes (\n, \1, ...).
+            text = re.sub(
+                re.escape(wrong),
+                lambda _m, right=right: right,
+                text,
+                flags=re.IGNORECASE,
+            )
         return text
 
     def ensure_file(self) -> Path:
@@ -52,6 +59,7 @@ class Dictionary:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text(
                 "# Sotto personal dictionary\n"
-                "# One term per line, or a correction: wrong -> right\n"
+                "# One term per line, or a correction: wrong -> right\n",
+                encoding="utf-8",
             )
         return self._path

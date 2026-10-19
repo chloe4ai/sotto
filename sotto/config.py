@@ -54,7 +54,7 @@ class Config:
     def load(cls) -> "Config":
         if CONFIG_PATH.exists():
             try:
-                data = json.loads(CONFIG_PATH.read_text())
+                data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
                 data = _migrate(data)
                 known = {f for f in cls.__dataclass_fields__}
                 kwargs = {k: v for k, v in data.items() if k in known}
@@ -68,7 +68,9 @@ class Config:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         data = asdict(self)
         data.update(data.pop("extra"))
-        CONFIG_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+        CONFIG_PATH.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
 
 def _migrate(data: dict) -> dict:
