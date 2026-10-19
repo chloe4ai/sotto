@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 
-from sotto.recorder import SAMPLE_RATE, _resample
+from sotto.recorder import SAMPLE_RATE, Recorder, _resample
 
 
 def test_resample_noop_at_target_rate():
@@ -27,3 +28,33 @@ def test_resample_preserves_signal_shape():
     out = _resample(sine, 44_100, SAMPLE_RATE)
     expected = np.sin(2 * np.pi * 5 * np.linspace(0, 1, len(out), endpoint=False))
     assert np.abs(out - expected).max() < 0.01
+
+
+class _BrokenStream:
+    def __init__(self):
+        self.closed = False
+
+    def stop(self):
+        raise RuntimeError("device vanished")
+
+    def abort(self, ignore_errors=True):
+        pass
+
+    def close(self, ignore_errors=True):
+        self.closed = True
+
+
+def test_reset_recovers_from_a_failed_stop():
+    rec = Recorder()
+    stream = _BrokenStream()
+    rec._stream = stream
+    rec._frames = [np.zeros((160, 1), dtype=np.float32)]
+
+    with pytest.raises(RuntimeError):
+        rec.stop()
+    assert rec.recording  # the half-open stream would block the next take
+
+    rec.reset()
+    assert not rec.recording
+    assert stream.closed
+    assert len(rec.stop()) == 0  # nothing stale left behind

@@ -29,6 +29,9 @@ class _FakeRecorder:
         self.recording = False
         return np.zeros(SAMPLE_RATE, dtype=np.float32)  # one second
 
+    def reset(self):
+        self.recording = False
+
 
 class _FakeHud:
     def __init__(self):
@@ -199,3 +202,27 @@ def test_max_duration_zero_disables_the_safety_net():
 
     assert app._auto_stop is None
     assert app.recorder.recording
+
+
+def test_recorder_failing_on_stop_does_not_escape_the_callback():
+    """pynput kills its listener if a callback raises, so a failed stop must
+    be reported and recovered from, never propagated."""
+    app = _app()
+    app.on_hotkey("f13")
+
+    def broken_stop():
+        raise RuntimeError("PortAudio: device unavailable")
+
+    app.recorder.stop = broken_stop
+    app.on_hotkey("f13")  # must not raise
+
+    assert app.errors == ["Dictation key failed"]
+    assert not app.recorder.recording
+    assert not app._busy
+    assert app._auto_stop is None
+    assert app._active_language is None
+
+    del app.recorder.stop  # the device is back
+    app.on_hotkey("f15")
+    assert app.recorder.recording
+    assert app.recorder.starts == 2

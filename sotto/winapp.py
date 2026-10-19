@@ -242,16 +242,37 @@ class WinApp:
         self.hotkey.stop()
         icon.stop()
 
+    # ----- errors -----
+
+    def _report_error(self, title: str, detail: str) -> None:
+        """Log the detail to the terminal and flash the title in the HUD."""
+        print(f"Sotto: {title}: {detail}", file=sys.stderr)
+        self.hud.error(f"{title} — see log")
+
     # ----- dictation flow -----
 
     def on_hotkey(self, key_name: str) -> None:
         """One press starts dictation, the next one ends it. Pressing the other
         language's key while recording just ends the take in progress."""
         with self._toggle_lock:
-            if self.recorder.recording:
-                self._stop_dictation()
-            elif not self._busy:  # still transcribing the previous take
-                self._start_dictation(self.hotkeys.get(key_name, "auto"))
+            try:
+                if self.recorder.recording:
+                    self._stop_dictation()
+                elif not self._busy:  # still transcribing the previous take
+                    self._start_dictation(self.hotkeys.get(key_name, "auto"))
+            except Exception as exc:
+                # pynput stops its listener for good if a callback raises,
+                # which would leave every dictation key dead until restart.
+                self._recover_from_toggle_error(exc)
+
+    def _recover_from_toggle_error(self, exc: Exception) -> None:
+        """Back to idle, so the next press starts a clean take."""
+        self._cancel_auto_stop()
+        self.recorder.reset()
+        self._active_language = None
+        self._busy = False
+        self.icon.icon = self._idle_icon
+        self._report_error("Dictation key failed", f"{type(exc).__name__}: {exc}")
 
     def _start_dictation(self, language: str) -> None:
         try:
@@ -306,7 +327,10 @@ class WinApp:
                     "(max_duration) — transcribing what was recorded.",
                     file=sys.stderr,
                 )
-                self._stop_dictation()
+                try:
+                    self._stop_dictation()
+                except Exception as exc:
+                    self._recover_from_toggle_error(exc)
 
     def _process(self, audio, language: str | None = None) -> None:
         try:

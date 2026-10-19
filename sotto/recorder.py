@@ -76,3 +76,17 @@ class Recorder:
             audio = np.concatenate(self._frames)[:, 0]
             self._frames = []
             return _resample(audio, self._rate, SAMPLE_RATE)
+
+    def reset(self) -> None:
+        """Drop the stream and any buffered audio, never raising. Used to
+        recover after start()/stop() failed halfway, so the next press
+        starts a fresh take instead of tripping over a half-open stream."""
+        with self._lock:
+            stream, self._stream = self._stream, None
+            self._frames = []
+        if stream is not None:
+            try:
+                stream.abort(ignore_errors=True)
+                stream.close(ignore_errors=True)
+            except Exception:
+                pass
