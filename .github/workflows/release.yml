@@ -1,25 +1,79 @@
-# Builds the Windows executable and attaches it to a GitHub release.
-# Runs when a release is published, or manually via workflow_dispatch.
+# Builds the macOS DMG and the Windows EXE, plus a SHA-256 file for each, and
+# attaches them to a GitHub release.
+#
+# Release flow:  bump the version in pyproject.toml and sotto/__init__.py,
+# merge, then `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag push creates
+# the release (notes from .github/release-notes.md) and builds both installers.
+# The workflow fails if the tag and the package version disagree.
+#
+# Also runs when a release is published by hand, or via workflow_dispatch to
+# rebuild the assets for an existing tag.
 name: Build installers
 
 on:
+  push:
+    tags: ["v*"]
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing release tag to upload assets to"
+        description: "Existing release tag to build and upload assets for (e.g. v0.2.0)"
         required: true
-        default: v0.1.0
 
 permissions:
   contents: write
 
+env:
+  TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
+
+# One build per tag at a time (a tag push and a hand-published release for the
+# same tag would otherwise race to upload the same files).
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.release.outputs.created }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - name: Tag must match the package version
+        run: |
+          expected="${TAG#v}"
+          toml=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          init=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' sotto/__init__.py)
+          echo "tag=$TAG pyproject=$toml sotto/__init__.py=$init"
+          if [ "$toml" != "$expected" ] || [ "$init" != "$expected" ]; then
+            echo "::error::Tag $TAG does not match the package version (pyproject.toml=$toml, sotto/__init__.py=$init)."
+            exit 1
+          fi
+      - name: Create the release if it does not exist yet
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            sed "s/{{VERSION}}/${TAG#v}/g" .github/release-notes.md > "$RUNNER_TEMP/notes.md"
+            # Not "latest" until both installers are attached (see finalize).
+            gh release create "$TAG" --verify-tag --latest=false \
+              --title "Sotto ${TAG#v}" --notes-file "$RUNNER_TEMP/notes.md"
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
+
   windows-exe:
+    needs: prepare
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -37,7 +91,50 @@ jobs:
           --collect-all tokenizers
           --collect-all sounddevice
           packaging/pyi_entry.py
+      - name: Checksum
+        run: |
+          $hash = (Get-FileHash dist/Sotto.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  Sotto.exe" | Out-File -Encoding ascii dist/Sotto.exe.sha256
+          Get-Content dist/Sotto.exe.sha256
       - name: Upload to release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.inputs.tag || github.event.release.tag_name }}" dist/Sotto.exe --clobber
+        run: gh release upload "$env:TAG" dist/Sotto.exe dist/Sotto.exe.sha256 --clobber
+
+  macos-dmg:
+    needs: prepare
+    runs-on: macos-14 # arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - uses: astral-sh/setup-uv@v5
+      - name: Build DMG
+        env:
+          SOTTO_BUILD_OUT: ${{ runner.temp }}/sotto-build
+          SOTTO_BUILD_VENV: ${{ runner.temp }}/sotto-build-venv
+        run: bash packaging/build_dmg.sh
+      - name: Checksum
+        run: |
+          mkdir release-assets
+          cp "$RUNNER_TEMP"/sotto-build/Sotto-*-macos-arm64.dmg release-assets/
+          cd release-assets
+          shasum -a 256 Sotto-*.dmg > "$(ls Sotto-*.dmg).sha256"
+          cat ./*.sha256
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" release-assets/* --clobber
+
+  finalize:
+    # A release this workflow created becomes "latest" only once both
+    # installers are on it, so releases/latest never points at an empty page.
+    needs: [prepare, windows-exe, macos-dmg]
+    if: needs.prepare.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark as latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "$TAG" --latest

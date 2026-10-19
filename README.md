@@ -6,7 +6,7 @@
 
 *Sotto voce* — in a soft voice. Sotto is for people who write in two languages all day and would rather talk than type: press a key, speak, press it again. Audio is transcribed on your own machine with [faster-whisper](https://github.com/SYSTRAN/faster-whisper), cleaned up, and pasted where the cursor already is. **F13 for 中文, F15 for English.**
 
-▶ **[Download for macOS or Windows](https://github.com/chloe4ai/sotto/releases/latest)** — `.dmg` for Apple Silicon, portable `.exe` for Windows 10/11.
+▶ **[Download Sotto 0.2.0 for macOS or Windows](https://github.com/chloe4ai/sotto/releases/latest)** — `.dmg` for Apple Silicon, portable `.exe` for Windows 10/11, each with a SHA-256 checksum. 0.2.0 adds press-to-toggle dictation with one key per language.
 
 ---
 

@@ -3,7 +3,8 @@
 #
 #   bash packaging/build_dmg.sh
 #
-# Output: dist/Sotto-<version>-macos-<arch>.dmg
+# Output: $SOTTO_BUILD_OUT (default /tmp/sotto-build)/Sotto-<version>-macos-<arch>.dmg
+# CI (.github/workflows/release.yml) runs this script and uploads the result.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
