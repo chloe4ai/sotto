@@ -9,6 +9,7 @@ Two tiers:
 
 import os
 import re
+import sys
 
 from .config import Config
 
@@ -24,6 +25,16 @@ You clean up dictated speech into polished written text. Rules:
 - Fix punctuation and capitalization. Keep the speaker's language(s) — do not translate.
 - Preserve meaning and tone. Do not add content, do not answer questions in the text.
 - Output ONLY the cleaned text, nothing else."""
+
+# Output budget for the AI tier. A 300 s take can run to a few thousand
+# characters, and CJK text costs roughly a token per character, so scale with
+# the input instead of using a flat limit that silently cuts long takes off.
+_MIN_OUTPUT_TOKENS = 1024
+_MAX_OUTPUT_TOKENS = 8192
+
+
+def _output_budget(text: str) -> int:
+    return min(_MAX_OUTPUT_TOKENS, max(_MIN_OUTPUT_TOKENS, 3 * len(text)))
 
 
 def local_polish(text: str) -> str:
@@ -63,20 +74,34 @@ class Polisher:
         if mode == "ai":
             try:
                 return self._ai_polish(text)
-            except Exception:
-                return local_polish(text)  # never lose the user's words
+            except Exception as exc:
+                # Never lose the user's words, but say why AI polish was skipped.
+                print(
+                    f"Sotto: AI polish failed ({type(exc).__name__}: {exc}); "
+                    "using local cleanup instead.",
+                    file=sys.stderr,
+                )
+                return local_polish(text)
         return local_polish(text)
 
     def _ai_polish(self, text: str) -> str:
-        import anthropic
-
         if self._client is None:
+            import anthropic
+
             self._client = anthropic.Anthropic()
         response = self._client.messages.create(
             model=self._config.ai_model,
-            max_tokens=1024,
+            max_tokens=_output_budget(text),
             system=_AI_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": text}],
         )
+        if response.stop_reason == "max_tokens":
+            # A truncated rewrite would drop the end of what was said.
+            print(
+                "Sotto: AI polish hit the output limit; using local cleanup "
+                "instead so nothing is cut off.",
+                file=sys.stderr,
+            )
+            return local_polish(text)
         cleaned = response.content[0].text.strip()
         return cleaned or local_polish(text)
